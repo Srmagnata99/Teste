@@ -1,3 +1,70 @@
+local Player = game.Players.LocalPlayer
+local ScreenGui = Instance.new("ScreenGui")
+local Frame = Instance.new("Frame")
+local ImageButton = Instance.new("ImageButton")  -- Usando ImageButton para ser clicÃ¡vel e movÃ­vel
+
+ScreenGui.Parent = Player:WaitForChild("PlayerGui")
+ScreenGui.ResetOnSpawn = false  -- MantÃ©m a GUI apÃ³s respawn
+
+-- ConfiguraÃ§Ãµes do Frame (caixa de diÃ¡logo)
+Frame.Parent = ScreenGui
+Frame.Size = UDim2.new(0, 30, 0, 30)  -- Define o tamanho do quadrado (60x60)
+Frame.Position = UDim2.new(0.7, 90, 0.6, -200)  -- PosiÃ§Ã£o ajustada
+Frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)  -- Define a cor do fundo como preto
+Frame.BackgroundTransparency = 1  -- Torna o fundo do Frame transparente
+
+-- ConfiguraÃ§Ãµes do ImageButton
+ImageButton.Parent = Frame
+ImageButton.Size = UDim2.new(1, 0, 1, 0)
+ImageButton.BackgroundTransparency = 1  -- Torna o fundo do ImageButton transparente
+ImageButton.Image = "rbxassetid://72671288986713"  -- Insira o asset id da imagem
+
+-- FunÃ§Ã£o de callback para o clique
+local function onButtonClick()
+    -- Simula a funÃ§Ã£o de "Left Control" 
+    print("BotÃ£o clicado!")  -- Exemplo de aÃ§Ã£o
+    game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.RightShift, false, game)
+    wait(0.1)
+    game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.RightShift, false, game)
+end
+
+-- ConexÃ£o de clique para o ImageButton
+ImageButton.MouseButton1Click:Connect(onButtonClick)
+
+-- VariÃ¡veis para arrastar
+local dragging, dragInput, dragStart, startPos
+
+-- FunÃ§Ã£o que inicia o arraste
+ImageButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = Frame.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+-- FunÃ§Ã£o que atualiza o arraste
+ImageButton.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+-- FunÃ§Ã£o que arrasta a caixa
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        Frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+    
+
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
