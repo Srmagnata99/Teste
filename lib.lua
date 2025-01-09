@@ -1874,15 +1874,7 @@ end
 tabButton.MouseButton1Click:Connect(function()
     tabtable:Select()
 end)
-
-return tabtable
-end
-
-return window
-end
-
-return library
-
+		
 local UserInputService = game:GetService("UserInputService")
 local ui = -- Referência para sua UI principal
 
@@ -1891,3 +1883,11 @@ UserInputService.InputBegan:Connect(function(input)
         ui.Visible = not ui.Visible
     end
 end)
+		
+return tabtable
+end
+
+return window
+end
+
+return library
