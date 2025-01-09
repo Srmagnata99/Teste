@@ -1882,3 +1882,12 @@ return window
 end
 
 return library
+
+local UserInputService = game:GetService("UserInputService")
+local ui = -- Referência para sua UI principal
+
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.RightShift then
+        ui.Visible = not ui.Visible
+    end
+end)
