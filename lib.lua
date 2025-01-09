@@ -1196,12 +1196,38 @@ dragButton.BackgroundTransparency = 1
 dragButton.Size = UDim2.new(1, 0, 0, 9)
 dragButton.Parent = sliderOuter
 
-dragButton.MouseButton1Down:Connect(function() -- Skidded from material ui hehe, sorry
-    local MouseMove, MouseKill
+sliderFrame.MouseEnter:Connect(function()
+    TweenService:Create(sliderFrame, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {BackgroundColor3 = library.selectedTheme.HoverItemFrame}):Play()
+end)
 
-    MouseMove = UserInputService.InputChanged:Connect(function(UserInput)
-        -- Certifique-se de que a entrada seja válida (MouseMovement ou Touch)
-        if UserInput.UserInputType == Enum.UserInputType.MouseMovement or UserInput.UserInputType == Enum.UserInputType.Touch then
+sliderFrame.MouseLeave:Connect(function()
+    TweenService:Create(sliderFrame, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {BackgroundColor3 = library.selectedTheme.ItemFrame}):Play()
+    TweenService:Create(sliderUIStroke, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {Color = library.selectedTheme.ItemUIStroke}):Play()
+end)
+
+dragButton.MouseButton1Down:Connect(function()
+    TweenService:Create(sliderUIStroke, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {Color = library.selectedTheme.ItemUIStrokeSelected}):Play()
+end)
+
+dragButton.MouseButton1Up:Connect(function()
+    TweenService:Create(sliderUIStroke, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {Color = library.selectedTheme.ItemUIStroke}):Play()
+end)
+
+task.spawn(Info.Callback, Info.Default)
+if Info.Flag then
+    library.Flags[Info.Flag] = Info.Default
+end
+
+local MinSize = 0
+local MaxSize = 1
+
+local SizeFromScale = (MinSize + (MaxSize - MinSize)) * DefaultScale
+SizeFromScale = SizeFromScale - (SizeFromScale % 2)
+
+dragButton.MouseButton1Down:Connect(function()
+    local MouseMove, InputEnded
+    MouseMove = UserInputService.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
             local Px = library:GetXY(sliderOuter)
             SizeFromScale = (MinSize + (MaxSize - MinSize)) * Px
             local Value = math.floor(Info.Minimum + ((Info.Maximum - Info.Minimum) * Px))
@@ -1212,16 +1238,15 @@ dragButton.MouseButton1Down:Connect(function() -- Skidded from material ui hehe,
             if Info.Flag then
                 library.Flags[Info.Flag] = Value
             end
-            sliderValueText.Text = tostring(Value)..Info.Postfix
+            sliderValueText.Text = tostring(Value) .. Info.Postfix
             task.spawn(Info.Callback, Value)
         end
     end)
-
-    MouseKill = UserInputService.InputEnded:Connect(function(UserInput)
-        -- Para de alterar os valores quando o botão do mouse ou o toque for solto
-        if UserInput.UserInputType == Enum.UserInputType.MouseButton1 or UserInput.UserInputType == Enum.UserInputType.Touch then
+    
+    InputEnded = UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             MouseMove:Disconnect()
-            MouseKill:Disconnect()
+            InputEnded:Disconnect()
         end
     end)
 end)
