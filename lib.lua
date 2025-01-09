@@ -1199,6 +1199,8 @@ dragButton.BackgroundTransparency = 1
 dragButton.Size = UDim2.new(1, 0, 0, 9)
 dragButton.Parent = sliderOuter
 
+local UserInputService = game:GetService("UserInputService")
+
 sliderFrame.MouseEnter:Connect(function()
     TweenService:Create(sliderFrame, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {BackgroundColor3 = library.selectedTheme.HoverItemFrame}):Play()
 end)
@@ -1208,12 +1210,27 @@ sliderFrame.MouseLeave:Connect(function()
     TweenService:Create(sliderUIStroke, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {Color = library.selectedTheme.ItemUIStroke}):Play()
 end)
 
+local function stopDragging()
+    TweenService:Create(sliderUIStroke, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {Color = library.selectedTheme.ItemUIStroke}):Play()
+    dragging = false
+end
+
 dragButton.MouseButton1Down:Connect(function()
     TweenService:Create(sliderUIStroke, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {Color = library.selectedTheme.ItemUIStrokeSelected}):Play()
+    dragging = true
 end)
 
-dragButton.MouseButton1Up:Connect(function()
-    TweenService:Create(sliderUIStroke, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {Color = library.selectedTheme.ItemUIStroke}):Play()
+-- Adiciona detecção de clique/tap e soltar para dispositivos móveis e desktops
+UserInputService.InputEnded:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+        stopDragging()
+    end
+end)
+
+UserInputService.TouchEnded:Connect(function()
+    if dragging then
+        stopDragging()
+    end
 end)
 
 task.spawn(Info.Callback, Info.Default)
