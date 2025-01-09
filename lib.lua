@@ -530,10 +530,13 @@ topbar.InputBegan:Connect(function(input)
         dragStart = input.Position
         startPos = main.Position
 
-        input.Changed:Connect(function()
-        	if input.UserInputState == Enum.UserInputState.End then
-        		dragging = false
-        	end
+        -- Conexão separada para evitar comportamento inesperado
+        local connection
+        connection = input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+                connection:Disconnect() -- Desconectar após uso
+            end
         end)
     end
 end)
@@ -1225,7 +1228,7 @@ local SizeFromScale = (MinSize +  (MaxSize - MinSize)) * DefaultScale
 SizeFromScale = SizeFromScale - (SizeFromScale % 2)
 
 dragButton.MouseButton1Down:Connect(function() -- Skidded from material ui hehe, sorry
-	local MouseMove, MouseKill, TouchKill
+	local MouseMove, MouseKill
 	MouseMove = Mouse.Move:Connect(function()
 		local Px = library:GetXY(sliderOuter)
 		SizeFromScale = (MinSize +  (MaxSize - MinSize)) * Px
@@ -1240,23 +1243,14 @@ dragButton.MouseButton1Down:Connect(function() -- Skidded from material ui hehe,
 		sliderValueText.Text = tostring(Value)..Info.Postfix
 		task.spawn(Info.Callback, Value)
 	end)
-
 	MouseKill = UserInputService.InputEnded:Connect(function(UserInput)
 		if UserInput.UserInputType == Enum.UserInputType.MouseButton1 then
 			MouseMove:Disconnect()
 			MouseKill:Disconnect()
 		end
 	end)
-
-	-- Adicionando suporte para dispositivos móveis
-	TouchKill = UserInputService.TouchEnded:Connect(function(Touch)
-		if Touch.UserInputType == Enum.UserInputType.Touch then
-			MouseMove:Disconnect()
-			MouseKill:Disconnect()
-			TouchKill:Disconnect()
-		end
-	end)
 end)
+end
 
 function sectiontable:Input(Info)
 Info.Text = Info.Text or "Input"
