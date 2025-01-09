@@ -1196,58 +1196,33 @@ dragButton.BackgroundTransparency = 1
 dragButton.Size = UDim2.new(1, 0, 0, 9)
 dragButton.Parent = sliderOuter
 
-sliderFrame.MouseEnter:Connect(function()
-    TweenService:Create(sliderFrame, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {BackgroundColor3 = library.selectedTheme.HoverItemFrame}):Play()
-end)
-
-sliderFrame.MouseLeave:Connect(function()
-    TweenService:Create(sliderFrame, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {BackgroundColor3 = library.selectedTheme.ItemFrame}):Play()
-    TweenService:Create(sliderUIStroke, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {Color = library.selectedTheme.ItemUIStroke}):Play()
-end)
-
 dragButton.MouseButton1Down:Connect(function()
     TweenService:Create(sliderUIStroke, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {Color = library.selectedTheme.ItemUIStrokeSelected}):Play()
-end)
-
-dragButton.MouseButton1Up:Connect(function()
-    TweenService:Create(sliderUIStroke, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {Color = library.selectedTheme.ItemUIStroke}):Play()
-end)
-
-task.spawn(Info.Callback, Info.Default)
-if Info.Flag then
-    library.Flags[Info.Flag] = Info.Default
-end
-
-local MinSize = 0
-local MaxSize = 1
-
-local SizeFromScale = (MinSize +  (MaxSize - MinSize)) * DefaultScale
-SizeFromScale = SizeFromScale - (SizeFromScale % 2)
-
-dragButton.MouseButton1Down:Connect(function() -- Skidded from material ui hehe, sorry
-	local MouseMove, MouseKill
-	MouseMove = Mouse.Move:Connect(function()
-		local Px = library:GetXY(sliderOuter)
-		SizeFromScale = (MinSize +  (MaxSize - MinSize)) * Px
-		local Value = math.floor(Info.Minimum + ((Info.Maximum - Info.Minimum) * Px))
-		SizeFromScale = SizeFromScale - (SizeFromScale % 2)
-		TweenService:Create(sliderInner, TweenInfo.new(0.09, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {Size = UDim2.new(Px,0,0,5)}):Play()
+    
+    local MouseMove, MouseKill
+    MouseMove = Mouse.Move:Connect(function()
+        local Px = library:GetXY(sliderOuter)
+        SizeFromScale = (MinSize +  (MaxSize - MinSize)) * Px
+        local Value = math.floor(Info.Minimum + ((Info.Maximum - Info.Minimum) * Px))
+        SizeFromScale = SizeFromScale - (SizeFromScale % 2)
+        TweenService:Create(sliderInner, TweenInfo.new(0.09, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {Size = UDim2.new(Px,0,0,5)}):Play()
         local iconpos = math.clamp(Px, 0.00981, 0.99141)
         TweenService:Create(dragIcon, TweenInfo.new(0.09, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {Position = UDim2.new(iconpos,-5,0,-2)}):Play()
-		if Info.Flag then
-		    library.Flags[Info.Flag] = Value
-		end
-		sliderValueText.Text = tostring(Value)..Info.Postfix
-		task.spawn(Info.Callback, Value)
-	end)
-	MouseKill = UserInputService.InputEnded:Connect(function(UserInput)
-		if UserInput.UserInputType == Enum.UserInputType.MouseButton1 then
-			MouseMove:Disconnect()
-			MouseKill:Disconnect()
-		end
-	end)
+        if Info.Flag then
+            library.Flags[Info.Flag] = Value
+        end
+        sliderValueText.Text = tostring(Value)..Info.Postfix
+        task.spawn(Info.Callback, Value)
+    end)
+
+    MouseKill = UserInputService.InputEnded:Connect(function(UserInput)
+        if UserInput.UserInputType == Enum.UserInputType.MouseButton1 or UserInput.UserInputType == Enum.UserInputType.Touch then
+            MouseMove:Disconnect()
+            MouseKill:Disconnect()
+            TweenService:Create(sliderUIStroke, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {Color = library.selectedTheme.ItemUIStroke}):Play()
+        end
+    end)
 end)
-end
 
 function sectiontable:Input(Info)
 Info.Text = Info.Text or "Input"
@@ -1874,16 +1849,7 @@ end
 tabButton.MouseButton1Click:Connect(function()
     tabtable:Select()
 end)
-		
-local UserInputService = game:GetService("UserInputService")
-local ui = -- Referência para sua UI principal
 
-UserInputService.InputBegan:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.RightShift then
-        ui.Visible = not ui.Visible
-    end
-end)
-		
 return tabtable
 end
 
