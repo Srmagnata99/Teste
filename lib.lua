@@ -1221,14 +1221,14 @@ end
 local MinSize = 0
 local MaxSize = 1
 
-local SizeFromScale = (MinSize + (MaxSize - MinSize)) * DefaultScale
+local SizeFromScale = (MinSize +  (MaxSize - MinSize)) * DefaultScale
 SizeFromScale = SizeFromScale - (SizeFromScale % 2)
 
-dragButton.MouseButton1Down:Connect(function()
-	local MouseMove, MouseKill
+dragButton.MouseButton1Down:Connect(function() -- Skidded from material ui hehe, sorry
+	local MouseMove, MouseKill, TouchKill
 	MouseMove = Mouse.Move:Connect(function()
 		local Px = library:GetXY(sliderOuter)
-		SizeFromScale = (MinSize + (MaxSize - MinSize)) * Px
+		SizeFromScale = (MinSize +  (MaxSize - MinSize)) * Px
 		local Value = math.floor(Info.Minimum + ((Info.Maximum - Info.Minimum) * Px))
 		SizeFromScale = SizeFromScale - (SizeFromScale % 2)
 		TweenService:Create(sliderInner, TweenInfo.new(0.09, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {Size = UDim2.new(Px,0,0,5)}):Play()
@@ -1240,17 +1240,16 @@ dragButton.MouseButton1Down:Connect(function()
 		sliderValueText.Text = tostring(Value)..Info.Postfix
 		task.spawn(Info.Callback, Value)
 	end)
-	
-	-- Tratamento para PC
+
 	MouseKill = UserInputService.InputEnded:Connect(function(UserInput)
 		if UserInput.UserInputType == Enum.UserInputType.MouseButton1 then
 			MouseMove:Disconnect()
 			MouseKill:Disconnect()
 		end
 	end)
-	
-	-- Tratamento para Mobile
-	local TouchKill = UserInputService.TouchEnded:Connect(function(Touch)
+
+	-- Adicionando suporte para dispositivos móveis
+	TouchKill = UserInputService.TouchEnded:Connect(function(Touch)
 		if Touch.UserInputType == Enum.UserInputType.Touch then
 			MouseMove:Disconnect()
 			MouseKill:Disconnect()
