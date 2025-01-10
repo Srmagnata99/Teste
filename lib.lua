@@ -530,21 +530,23 @@ topbar.InputBegan:Connect(function(input)
         dragStart = input.Position
         startPos = main.Position
 
-        -- Conexão separada para garantir que o input seja interrompido ao final
-        local connection
-        connection = input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-                connection:Disconnect() -- Desconectar após o término da interação
-            end
+        input.Changed:Connect(function()
+        	if input.UserInputState == Enum.UserInputState.End then
+        		dragging = false
+        	end
         end)
     end
 end)
 
 topbar.InputChanged:Connect(function(input)
-    if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and dragging then
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
         dragInput = input
-        update(input)  -- Atualiza a posição do objeto durante o arraste
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
     end
 end)
 
@@ -1194,9 +1196,6 @@ dragButton.BackgroundTransparency = 1
 dragButton.Size = UDim2.new(1, 0, 0, 9)
 dragButton.Parent = sliderOuter
 
-local UserInputService = game:GetService("UserInputService")
-local dragging = false
-
 sliderFrame.MouseEnter:Connect(function()
     TweenService:Create(sliderFrame, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {BackgroundColor3 = library.selectedTheme.HoverItemFrame}):Play()
 end)
@@ -1208,22 +1207,10 @@ end)
 
 dragButton.MouseButton1Down:Connect(function()
     TweenService:Create(sliderUIStroke, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {Color = library.selectedTheme.ItemUIStrokeSelected}):Play()
-    dragging = true
 end)
 
--- A detecção de clique/tap e soltar foi modificada para ajustar o valor de dragging.
-UserInputService.InputEnded:Connect(function(input)
-    if dragging and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-        dragging = false
-        TweenService:Create(sliderUIStroke, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {Color = library.selectedTheme.ItemUIStroke}):Play()
-    end
-end)
-
-UserInputService.TouchEnded:Connect(function()
-    if dragging then
-        dragging = false
-        TweenService:Create(sliderUIStroke, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {Color = library.selectedTheme.ItemUIStroke}):Play()
-    end
+dragButton.MouseButton1Up:Connect(function()
+    TweenService:Create(sliderUIStroke, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {Color = library.selectedTheme.ItemUIStroke}):Play()
 end)
 
 task.spawn(Info.Callback, Info.Default)
@@ -1237,29 +1224,30 @@ local MaxSize = 1
 local SizeFromScale = (MinSize +  (MaxSize - MinSize)) * DefaultScale
 SizeFromScale = SizeFromScale - (SizeFromScale % 2)
 
--- Mantendo o código original, mas alterando o evento de movimentação para evitar alterações indesejadas
-dragButton.MouseButton1Down:Connect(function() -- Skidded from material ui hehe, sorry
+local dragging = false  -- Adicionando uma flag para controle de estado de interação
+
+dragButton.MouseButton1Down:Connect(function()
+    dragging = true  -- Marca como "interagindo" ao pressionar
     local MouseMove, MouseKill
-    MouseMove = UserInputService.InputChanged:Connect(function(UserInput)
-        -- Verifica se estamos arrastando (dragging) e o tipo de entrada é movimento do mouse ou toque
-        if dragging and (UserInput.UserInputType == Enum.UserInputType.MouseMovement or UserInput.UserInputType == Enum.UserInputType.Touch) then
-            local Px = library:GetXY(sliderOuter)
-            SizeFromScale = (MinSize +  (MaxSize - MinSize)) * Px
-            local Value = math.floor(Info.Minimum + ((Info.Maximum - Info.Minimum) * Px))
-            SizeFromScale = SizeFromScale - (SizeFromScale % 2)
-            TweenService:Create(sliderInner, TweenInfo.new(0.09, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {Size = UDim2.new(Px,0,0,5)}):Play()
-            local iconpos = math.clamp(Px, 0.00981, 0.99141)
-            TweenService:Create(dragIcon, TweenInfo.new(0.09, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {Position = UDim2.new(iconpos,-5,0,-2)}):Play()
-            if Info.Flag then
-                library.Flags[Info.Flag] = Value
-            end
-            sliderValueText.Text = tostring(Value)..Info.Postfix
-            task.spawn(Info.Callback, Value)
+    MouseMove = Mouse.Move:Connect(function()
+        if not dragging then return end  -- Se não estiver interagindo, não atualize o valor
+        local Px = library:GetXY(sliderOuter)
+        SizeFromScale = (MinSize + (MaxSize - MinSize)) * Px
+        local Value = math.floor(Info.Minimum + ((Info.Maximum - Info.Minimum) * Px))
+        SizeFromScale = SizeFromScale - (SizeFromScale % 2)
+        TweenService:Create(sliderInner, TweenInfo.new(0.09, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {Size = UDim2.new(Px, 0, 0, 5)}):Play()
+        local iconpos = math.clamp(Px, 0.00981, 0.99141)
+        TweenService:Create(dragIcon, TweenInfo.new(0.09, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {Position = UDim2.new(iconpos, -5, 0, -2)}):Play()
+        if Info.Flag then
+            library.Flags[Info.Flag] = Value
         end
+        sliderValueText.Text = tostring(Value) .. Info.Postfix
+        task.spawn(Info.Callback, Value)
     end)
 
     MouseKill = UserInputService.InputEnded:Connect(function(UserInput)
-        if UserInput.UserInputType == Enum.UserInputType.MouseButton1 or UserInput.UserInputType == Enum.UserInputType.Touch then
+        if UserInput.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false  -- Interação finalizada, para de alterar o valor
             MouseMove:Disconnect()
             MouseKill:Disconnect()
         end
