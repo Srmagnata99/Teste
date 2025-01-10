@@ -1211,6 +1211,7 @@ dragButton.MouseButton1Down:Connect(function()
     dragging = true
 end)
 
+-- A detecção de clique/tap e soltar foi modificada para ajustar o valor de dragging.
 UserInputService.InputEnded:Connect(function(input)
     if dragging and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
         dragging = false
@@ -1218,16 +1219,29 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
+UserInputService.TouchEnded:Connect(function()
+    if dragging then
+        dragging = false
+        TweenService:Create(sliderUIStroke, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {Color = library.selectedTheme.ItemUIStroke}):Play()
+    end
+end)
+
+task.spawn(Info.Callback, Info.Default)
+if Info.Flag then
+    library.Flags[Info.Flag] = Info.Default
+end
+
 local MinSize = 0
 local MaxSize = 1
 
 local SizeFromScale = (MinSize +  (MaxSize - MinSize)) * DefaultScale
 SizeFromScale = SizeFromScale - (SizeFromScale % 2)
 
--- Ajustando o comportamento do movimento do mouse/touch para que só aconteça enquanto o usuário está pressionando
+-- Mantendo o código original, mas alterando o evento de movimentação para evitar alterações indesejadas
 dragButton.MouseButton1Down:Connect(function() -- Skidded from material ui hehe, sorry
     local MouseMove, MouseKill
     MouseMove = UserInputService.InputChanged:Connect(function(UserInput)
+        -- Verifica se estamos arrastando (dragging) e o tipo de entrada é movimento do mouse ou toque
         if dragging and (UserInput.UserInputType == Enum.UserInputType.MouseMovement or UserInput.UserInputType == Enum.UserInputType.Touch) then
             local Px = library:GetXY(sliderOuter)
             SizeFromScale = (MinSize +  (MaxSize - MinSize)) * Px
