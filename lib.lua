@@ -530,26 +530,21 @@ topbar.InputBegan:Connect(function(input)
         dragStart = input.Position
         startPos = main.Position
 
-        -- Conexão separada para evitar comportamento inesperado
+        -- Conexão separada para garantir que o input seja interrompido ao final
         local connection
         connection = input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then
                 dragging = false
-                connection:Disconnect() -- Desconectar após uso
+                connection:Disconnect() -- Desconectar após o término da interação
             end
         end)
     end
 end)
 
 topbar.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+    if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and dragging then
         dragInput = input
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        update(input)
+        update(input)  -- Atualiza a posição do objeto durante o arraste
     end
 end)
 
