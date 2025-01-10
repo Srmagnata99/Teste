@@ -1211,7 +1211,6 @@ dragButton.MouseButton1Down:Connect(function()
     dragging = true
 end)
 
--- A detecção de clique/tap e soltar foi modificada para ajustar o valor de dragging.
 UserInputService.InputEnded:Connect(function(input)
     if dragging and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
         dragging = false
@@ -1219,48 +1218,39 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
-UserInputService.TouchEnded:Connect(function()
-    if dragging then
-        dragging = false
-        TweenService:Create(sliderUIStroke, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {Color = library.selectedTheme.ItemUIStroke}):Play()
-    end
-end)
-
-task.spawn(Info.Callback, Info.Default)
-if Info.Flag then
-    library.Flags[Info.Flag] = Info.Default
-end
-
 local MinSize = 0
 local MaxSize = 1
 
 local SizeFromScale = (MinSize +  (MaxSize - MinSize)) * DefaultScale
 SizeFromScale = SizeFromScale - (SizeFromScale % 2)
 
+-- Ajustando o comportamento do movimento do mouse/touch para que só aconteça enquanto o usuário está pressionando
 dragButton.MouseButton1Down:Connect(function() -- Skidded from material ui hehe, sorry
-	local MouseMove, MouseKill
-	MouseMove = Mouse.Move:Connect(function()
-		local Px = library:GetXY(sliderOuter)
-		SizeFromScale = (MinSize +  (MaxSize - MinSize)) * Px
-		local Value = math.floor(Info.Minimum + ((Info.Maximum - Info.Minimum) * Px))
-		SizeFromScale = SizeFromScale - (SizeFromScale % 2)
-		TweenService:Create(sliderInner, TweenInfo.new(0.09, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {Size = UDim2.new(Px,0,0,5)}):Play()
-        local iconpos = math.clamp(Px, 0.00981, 0.99141)
-        TweenService:Create(dragIcon, TweenInfo.new(0.09, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {Position = UDim2.new(iconpos,-5,0,-2)}):Play()
-		if Info.Flag then
-		    library.Flags[Info.Flag] = Value
-		end
-		sliderValueText.Text = tostring(Value)..Info.Postfix
-		task.spawn(Info.Callback, Value)
-	end)
-	MouseKill = UserInputService.InputEnded:Connect(function(UserInput)
-		if UserInput.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			MouseMove:Disconnect()
-			MouseKill:Disconnect()
-		end
-	end)
+    local MouseMove, MouseKill
+    MouseMove = UserInputService.InputChanged:Connect(function(UserInput)
+        if dragging and (UserInput.UserInputType == Enum.UserInputType.MouseMovement or UserInput.UserInputType == Enum.UserInputType.Touch) then
+            local Px = library:GetXY(sliderOuter)
+            SizeFromScale = (MinSize +  (MaxSize - MinSize)) * Px
+            local Value = math.floor(Info.Minimum + ((Info.Maximum - Info.Minimum) * Px))
+            SizeFromScale = SizeFromScale - (SizeFromScale % 2)
+            TweenService:Create(sliderInner, TweenInfo.new(0.09, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {Size = UDim2.new(Px,0,0,5)}):Play()
+            local iconpos = math.clamp(Px, 0.00981, 0.99141)
+            TweenService:Create(dragIcon, TweenInfo.new(0.09, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {Position = UDim2.new(iconpos,-5,0,-2)}):Play()
+            if Info.Flag then
+                library.Flags[Info.Flag] = Value
+            end
+            sliderValueText.Text = tostring(Value)..Info.Postfix
+            task.spawn(Info.Callback, Value)
+        end
+    end)
+
+    MouseKill = UserInputService.InputEnded:Connect(function(UserInput)
+        if UserInput.UserInputType == Enum.UserInputType.MouseButton1 or UserInput.UserInputType == Enum.UserInputType.Touch then
+            MouseMove:Disconnect()
+            MouseKill:Disconnect()
+        end
+    end)
 end)
-end
 
 function sectiontable:Input(Info)
 Info.Text = Info.Text or "Input"
