@@ -1254,7 +1254,7 @@ dragButton.MouseButton1Down:Connect(function() -- Skidded from material ui hehe,
 		task.spawn(Info.Callback, Value)
 	end)
 	MouseKill = UserInputService.InputEnded:Connect(function(UserInput)
-		if UserInput.UserInputType == Enum.UserInputType.MouseButton1 then
+		if UserInput.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			MouseMove:Disconnect()
 			MouseKill:Disconnect()
 		end
