@@ -1200,6 +1200,7 @@ dragButton.Size = UDim2.new(1, 0, 0, 9)
 dragButton.Parent = sliderOuter
 
 local UserInputService = game:GetService("UserInputService")
+local dragging = false
 
 sliderFrame.MouseEnter:Connect(function()
     TweenService:Create(sliderFrame, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {BackgroundColor3 = library.selectedTheme.HoverItemFrame}):Play()
@@ -1210,26 +1211,23 @@ sliderFrame.MouseLeave:Connect(function()
     TweenService:Create(sliderUIStroke, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {Color = library.selectedTheme.ItemUIStroke}):Play()
 end)
 
-local function stopDragging()
-    TweenService:Create(sliderUIStroke, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {Color = library.selectedTheme.ItemUIStroke}):Play()
-    dragging = false
-end
-
 dragButton.MouseButton1Down:Connect(function()
     TweenService:Create(sliderUIStroke, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {Color = library.selectedTheme.ItemUIStrokeSelected}):Play()
     dragging = true
 end)
 
--- Adiciona detecção de clique/tap e soltar para dispositivos móveis e desktops
+-- A detecção de clique/tap e soltar foi modificada para ajustar o valor de dragging.
 UserInputService.InputEnded:Connect(function(input)
     if dragging and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-        stopDragging()
+        dragging = false
+        TweenService:Create(sliderUIStroke, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {Color = library.selectedTheme.ItemUIStroke}):Play()
     end
 end)
 
 UserInputService.TouchEnded:Connect(function()
     if dragging then
-        stopDragging()
+        dragging = false
+        TweenService:Create(sliderUIStroke, TweenInfo.new(.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {Color = library.selectedTheme.ItemUIStroke}):Play()
     end
 end)
 
