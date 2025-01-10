@@ -1223,9 +1223,7 @@ local MaxSize = 1
 
 local SizeFromScale = (MinSize +  (MaxSize - MinSize)) * DefaultScale
 SizeFromScale = SizeFromScale - (SizeFromScale % 2)
-
-local dragging = false  -- Adicionando uma flag para controle de estado de interação
-
+    
 dragButton.MouseButton1Down:Connect(function()
     dragging = true  -- Marca como "interagindo" ao pressionar
     local MouseMove, MouseKill
